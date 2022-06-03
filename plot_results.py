@@ -98,6 +98,11 @@ to_plot_metrics_discrimination = [
                     'specificity',
                    ]
 
+to_plot_metrics_brier = ['brier',
+                   'balancedBrier',
+                   'brierPos',
+                   'brierNeg']
+
 means = dict.fromkeys(to_plot_metrics_discrimination)
 stds = dict.fromkeys(to_plot_metrics_discrimination)
 
@@ -195,10 +200,7 @@ for metric in to_plot_metrics_discrimination:
     df[metric] = ["{:.2e}\pm{:.2e}".format(mean,std) for mean,std in zip(means[metric], stds[metric])]
 
 
-to_plot_metrics_brier = ['brier',
-                   'balancedBrier',
-                   'brierPos',
-                   'brierNeg']
+
 means = dict.fromkeys(to_plot_metrics_brier)
 stds = dict.fromkeys(to_plot_metrics_brier)
 
