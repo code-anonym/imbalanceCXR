@@ -120,7 +120,7 @@ for pathology_id, pathology_name in enumerate(sorted_pathologies):
             pathname = pathology_name.split(' ')[0][:8] + '\n' + pathology_name.split(' ')[1][:8]
         else:
             pathname = pathology_name[:7]
-        positive_ratios.append(mean_n_pos[current])
+        positive_ratios.append("{:.2e}".format(mean_n_pos[current]))
         labels.append("{} \n({:.2f}%)".format(pathname,
                                               100 * mean_n_pos[current]))
         for seed in range(n_seeds):
@@ -197,7 +197,7 @@ df = pd.DataFrame(columns=['Pathology','Positive class ratio'] + to_plot_metrics
 df['Pathology'] = sorted_pathologies
 df['Positive class ratio'] = positive_ratios
 for metric in to_plot_metrics_discrimination:
-    df[metric] = ["{:.2e}\pm{:.2e}".format(mean,std) for mean,std in zip(means[metric], stds[metric])]
+    df[metric] = ["{:.2e}+-{:.2e}".format(mean,std) for mean,std in zip(means[metric], stds[metric])]
 
 
 
@@ -249,6 +249,6 @@ briers_fig.savefig(cfg.figures_dir+f'/png/briers_{dataset}_{plot_type}.png',form
 briers_fig.savefig(cfg.figures_dir+f'/svg/briers_{dataset}_{plot_type}.svg',format='svg')
 
 for metric in to_plot_metrics_brier:
-    df[metric] = ["{:.2e}\pm{:.2e}".format(mean,std) for mean,std in zip(means[metric], stds[metric])]
+    df[metric] = ["{:.2e}".format(mean)+"+-"+"{:.2e}".format(std) for mean,std in zip(means[metric], stds[metric])]
 
-df.to_csv(cfg.figures_dir+'/{dataset}_metrics.csv',ignore_index=True)
+df.to_csv(cfg.figures_dir+f'/{dataset}_metrics.csv', index=False)
