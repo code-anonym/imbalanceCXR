@@ -88,8 +88,9 @@ for _seed in seed_list:
         train_size = int(0.8 * len(dataset))
         test_size = len(dataset) - train_size
         torch.manual_seed(cfg.seed)
-        train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size],
-                                                                    generator=torch.Generator().manual_seed(42))
+        train_dataset, test_dataset = torch.utils.data.random_split(dataset,
+                                                    [train_size, test_size],
+                                                    generator=torch.Generator().manual_seed(42))
 
         #disable data aug
         test_dataset.data_aug = None
@@ -170,17 +171,17 @@ for _seed in seed_list:
         priors_dict['test'] = priors_test
         with open(os.path.join(cfg.output_dir, f'{dataset_name}-priors.pkl'), "wb") as f:
             pickle.dump(priors_dict,f)
-        test_aucroc,test_aucpr, test_performance_metrics, test_thresholds, _, _ = valid_epoch(name='test',
-                                                                                 epoch=0,
-                                                                                 model=model,
-                                                                                 device=device,
-                                                                                 data_loader=test_loader,
-                                                                                 criterions=criterions_test,
-                                                                                 priors=priors_dict,
-                                                                                 dataset_name=dataset_name,
-                                                                                 cfg=cfg)
+        test_aucroc,test_aucpr, test_adj_aucpr, test_performance_metrics, test_thresholds, _, _ = valid_epoch(name='test',
+                                                                 epoch=0,
+                                                                 model=model,
+                                                                 device=device,
+                                                                 data_loader=test_loader,
+                                                                 criterions=criterions_test,
+                                                                 priors=priors_dict,
+                                                                 dataset_name=dataset_name,
+                                                                 cfg=cfg)
 
-        print('AUCROC {} - AUCPR {}'.format(test_aucroc,test_aucpr))
+        print('AUCROC {} - AUCPR {} - Ajusted AUCPR'.format(test_aucroc,test_aucpr, test_adj_aucpr))
         with open(cfg.output_dir + '/test/' + f'{dataset_name}-test-performance-metrics.pkl', 'wb') as f:
             pickle.dump(test_performance_metrics, f)
 

@@ -8,6 +8,13 @@ import torchxrayvision as xrv
 from focal_loss.focal_loss import FocalLoss
 from tqdm import tqdm as tqdm_base
 from matplotlib import pyplot as plt
+from math import log
+
+def adjustAUCPR(auc_original, y_true):
+    y_true = np.squeeze(y_true)
+    assert len(np.array(y_true).shape) == 1
+    positive_ratio = np.sum(y_true) / len(y_true)
+    return 1 - (log(auc_original) / log(positive_ratio))
 
 
 def plotBrierMetrics(means, stds, sorted_pathologies, to_plot_metrics=None,

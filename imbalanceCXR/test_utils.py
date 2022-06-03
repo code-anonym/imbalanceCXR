@@ -8,7 +8,7 @@ import torch
 from sklearn.metrics import roc_auc_score, f1_score, accuracy_score,  brier_score_loss, log_loss, roc_curve, precision_recall_curve
 from sklearn.calibration import calibration_curve
 from sklearn.metrics import auc as sklearnAUC
-from imbalanceCXR.utils import tqdm
+from imbalanceCXR.utils import tqdm, adjustAUCPR
 
 try:
     from imbalanceCXR.calibration import logregCal, PAV
@@ -69,12 +69,17 @@ def getCalibrationMetrics(labels, probs, save_details_pathology=None):
 
 
 def getMetrics(y_true, y_pred, metrics_results, YI_thresholds_roc, save_details_pathology=None, costs_thr=None):
+    y_true = np.squeeze(y_true)
+    y_pred = np.squeeze(y_pred)
+    assert len(np.array(y_true).shape) == 1
+    assert len(y_pred) == len(y_true)
     fpr, tpr, thr = roc_curve(y_true, y_pred)
     youden_index_thres = thr[np.argmax(tpr - fpr)]
     YI_thresholds_roc.append(youden_index_thres)
 
     precision, recall, thresholds = precision_recall_curve(y_true, y_pred)
     auc_precision_recall = sklearnAUC(recall, precision)
+    adjusted_AUCPR = adjustAUCPR(auc_precision_recall, y_true)
 
     Npos, ece, mce, ecePos, \
     mcePos, eceNeg, mceNeg, \
@@ -87,6 +92,7 @@ def getMetrics(y_true, y_pred, metrics_results, YI_thresholds_roc, save_details_
     metrics_results['f1score-0.5'].append(f1_score(y_true, y_pred > 0.5))
     metrics_results['accuracy-0.5'].append(accuracy_score(y_true, y_pred > 0.5))
     metrics_results['AUC-PR'].append(auc_precision_recall)
+    metrics_results['Adjusted-AUC-PR'].append(adjusted_AUCPR)
     metrics_results['Npos'].append(Npos)
     metrics_results['ECE'].append(ece)
     metrics_results['MCE'].append(mce)
@@ -253,7 +259,7 @@ def valid_epoch(name, epoch, model, device, data_loader, criterions, priors=None
                    'ECE+', 'MCE+',
                    'ECE-', 'MCE-',
                    'brier', 'brier+', 'brier-','balancedBrier',
-                   'AUC-ROC', 'AUC-PR',
+                   'AUC-ROC', 'AUC-PR','Adjusted-AUC-PR',
                    'f1score-0.5', 'f1score-costsTh',
                    'accuracy-0.5', 'accuracy-costsTh',
                    'nllSklearn']
@@ -348,5 +354,5 @@ def valid_epoch(name, epoch, model, device, data_loader, criterions, priors=None
                     """
 
     return metrics_means['AUC-ROC'], metrics_means[
-        'AUC-PR'], metrics_results, thresholds, pathology_outputs, pathology_targets
+        'AUC-PR'], metrics_means['Adjusted-AUC-PR'],metrics_results, thresholds, pathology_outputs, pathology_targets
 

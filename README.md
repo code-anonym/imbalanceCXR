@@ -14,7 +14,7 @@ This repository can be used to reproduce the experiments described in the articl
 - Follow instructions to install the [DCA_PLDA](https://github.com/luferrer/DCA-PLDA) package. 
 - Copy the script calibration.py to the imbalanceCXR folder
 ``cp DCA-PLDA/dca_plda/calibration.py imbalanceCXR/imbalanceCXR``
-- This repository uses public chest x-ray datasets. Modify the script configure_datasets.py to indicate the directories where the datasets are downloaded.
+- This repository uses public chest x-ray datasetschexpert. Modify the script configure_datasets.py to indicate the directories where the datasets are downloaded.
 
 ### Train and test models with multiple splitting seeds
 

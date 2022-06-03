@@ -4,10 +4,10 @@ sys.path.insert(0,".")
 
 import numpy as np
 
-from sklearn.metrics import auc,brier_score_loss, roc_curve, roc_auc_score, confusion_matrix,precision_recall_curve
+from sklearn.metrics import auc, brier_score_loss, roc_auc_score, confusion_matrix, precision_recall_curve
 
 from sklearn.metrics import auc as sklearnAUC
-from imbalanceCXR.utils import plotDiscriminationMetrics,plotBrierMetrics
+from imbalanceCXR.utils import plotDiscriminationMetrics, plotBrierMetrics, adjustAUCPR
 
 import argparse
 
@@ -99,7 +99,7 @@ mean_n_pos_int = [np.mean([priors[seed]['test']['n_pos'][pathology] for seed in 
 
 to_plot_metrics_discrimination = [
                     'AUC-ROC',
-                    'AUC-PR',
+                    'Adjusted-AUC-PR',
                     'recall',
                     'precision',
                     'specificity',
@@ -156,6 +156,10 @@ for pathology_id, pathology_name in enumerate(sorted_pathologies):
                 if metric == 'AUC-PR':
                     precision, recall, ths_prec_recall = precision_recall_curve(y[0], y[1])
                     this_metric = sklearnAUC(recall, precision)
+
+                if metric == 'Adjusted-AUC-PR':
+                    precision, recall, ths_prec_recall = precision_recall_curve(y[0], y[1])
+                    this_metric = adjustAUCPR(sklearnAUC(recall, precision), y[0])
 
                 if 'AUC' not in metric:
                     y_binaria = (y[0], y[1] > maxf1threhsold[seed])
