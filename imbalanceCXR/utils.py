@@ -124,6 +124,7 @@ def plotDiscriminationMetrics(means, stds, sorted_pathologies, to_plot_metrics=N
                                plot_type='combined',labels=None):
     styles_dict = {
         'AUC-ROC': {'label': 'AUC-ROC', 'color': 'darkgreen', 'lw': '2'},
+        'Adjusted-AUC-PR': {'label': 'Adjusted-AUC-PR', 'color': 'blue', 'lw': '2'},
         'AUC-PR': {'label': 'AUC-PR', 'color': 'firebrick', 'lw': '2'},
         'recall': {'label': 'Recall', 'color': 'orange', 'lw': '2'},
         'precision': {'label': 'Precision', 'color': 'purple', 'lw': '2'},

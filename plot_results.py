@@ -39,55 +39,51 @@ os.makedirs(cfg.figures_dir+'/png',exist_ok=True)
 os.makedirs(cfg.figures_dir+'/svg',exist_ok=True)
 
 priors = np.array([None] * n_seeds)
+counter = 0
 for file in os.listdir(cfg.output_dir):
-    if 'priors' in file and dataset in file:
+    if 'priors' in file and dataset in file and 'task' not in file:
         seed = int(file.split('seed')[-1][0])
         if seed < n_seeds:
             print(file)
             with open(os.path.join(cfg.output_dir, file), 'rb') as f:
                 priors[seed] = pickle.load(f)
-
+                counter+=1
+print("Loaded {} priors".format(counter))
 sorted_pathologies = [x[1] for x in sorted(zip(priors[0]['valid']['n_pos'], pathologies['default']), reverse=True) if
                       x[1] in pathologies[dataset]]
 
 results_test = np.array([None] * n_seeds)
 results_valid = np.array([None] * n_seeds)
 
-test_metrics = np.array([None] * n_seeds)
-valid_metrics = np.array([None] * n_seeds)
-
-
 testDir = cfg.output_dir + '/test/'
 validDir = cfg.output_dir + '/valid/'
-
+if not os.path.exists(validDir):
+    validDir = cfg.output_dir + '/valid-test/'
 thresholds = {}
-
+counter_results = 0
 for file in os.listdir(testDir):
     if files_name in file:
-        if 'performance-metrics' in file:
-            seed = int(file.split('seed')[-1][0])
-            if seed < n_seeds:
-                with open(os.path.join(testDir, file), 'rb') as f:
-                    test_metrics[seed] = pickle.load(f)
-        if 'predict' in file:
+        if 'predict' in file and 'task' not in file:
             seed = int(file.split('seed')[-1][0])
             if seed < n_seeds:
                 with open(os.path.join(testDir, file), 'rb') as f:
                     results_test[seed] = pickle.load(f)
+                    counter_results+=1
+print("From test loaded {} results files".format(counter_results))
 
+counter_results = 0
 for file in os.listdir(validDir):
     if files_name in file:
-        if 'performance-metrics' in file:
-            seed = int(file.split('seed')[-1][0])
-            if seed < n_seeds:
-                with open(os.path.join(validDir, file), 'rb') as f:
-                    valid_metrics[seed] = pickle.load(f)
-        if 'predict' in file:
+        if 'predict' in file and 'task' not in file:
             seed = int(file.split('seed')[-1][0])
             if seed < n_seeds:
                 # print('found valid preds for seed ',seed)
                 with open(os.path.join(validDir, file), 'rb') as f:
                     results_valid[seed] = pickle.load(f)
+                    print(file)
+                    counter_results+=1
+
+print("From valid loaded {} results files".format(counter_results))
 
 mean_n_pos = [np.mean(
     [priors[seed]['test']['n_pos'][pathology] / priors[seed]['test']['n_total'][pathology] for seed in range(n_seeds)])
@@ -98,7 +94,7 @@ mean_n_pos_int = [np.mean([priors[seed]['test']['n_pos'][pathology] for seed in 
 ## DISCRIMINATION PLOTS
 
 to_plot_metrics_discrimination = [
-                    'AUC-ROC',
+                    'AUC-ROC','AUC-PR',
                     'Adjusted-AUC-PR',
                     'recall',
                     'precision',
@@ -229,7 +225,6 @@ for pathology_id, pathology_name in enumerate(sorted_pathologies):
                     this_metric = brier_score_loss(y[0], y[1])
                 if metric == 'brierPos':
                     this_metric = brier_score_loss(y[0][y[0] == 1], y[1][y[0] == 1])
-                    # print(this_metric,test_metrics[seed][metric][current])
                 if metric == 'brierNeg':
                     this_metric = brier_score_loss(y[0][y[0] == 0], y[1][y[0] == 0])
                 if metric == 'balancedBrier':
