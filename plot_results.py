@@ -1,15 +1,12 @@
 import pickle
 import os,sys
 sys.path.insert(0,".")
-
+import argparse
 import numpy as np
-
+import pandas as pd
 from sklearn.metrics import auc, brier_score_loss, roc_auc_score, confusion_matrix, precision_recall_curve
-
 from sklearn.metrics import auc as sklearnAUC
 from imbalanceCXR.utils import plotDiscriminationMetrics, plotBrierMetrics, adjustAUCPR
-
-import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--output_dir', type=str, default="./output/", help='Path where train outputs were saved')
@@ -108,6 +105,7 @@ for metric in to_plot_metrics_discrimination:
     means[metric] = np.zeros(len(sorted_pathologies))
     stds[metric] = np.zeros(len(sorted_pathologies))
 labels = []
+positive_ratios = []
 for pathology_id, pathology_name in enumerate(sorted_pathologies):
     if pathology_name in pathologies[dataset]:
         current = pathologies['default'].index(pathology_name)
@@ -117,7 +115,7 @@ for pathology_id, pathology_name in enumerate(sorted_pathologies):
             pathname = pathology_name.split(' ')[0][:8] + '\n' + pathology_name.split(' ')[1][:8]
         else:
             pathname = pathology_name[:7]
-
+        positive_ratios.append(mean_n_pos[current])
         labels.append("{} \n({:.2f}%)".format(pathname,
                                               100 * mean_n_pos[current]))
         for seed in range(n_seeds):
@@ -135,12 +133,11 @@ for pathology_id, pathology_name in enumerate(sorted_pathologies):
             maxf1threhsold[seed] = ths_prec_recall_valid[np.argmax(f1_scores_valid)]
             maxrecall_valid = recall_valid[np.argmax(f1_scores_valid)]
             maxprecision_valid= precision_valid[np.argmax(f1_scores_valid)]
-            print(f'{pathology_name}: Best F1 for {seed} had recall={maxrecall_valid} and precision={maxprecision_valid}')
+            """ print(f'{pathology_name}: Best F1 for {seed} had recall={maxrecall_valid} and precision={maxprecision_valid}')
             print('Max recall: {}. Max precision: {}. Max F1 score: {}'.format(recall_valid.max(),
                                                                                precision_valid.max(),
-                                                                               f1_scores_valid.max()))
+                                                                               f1_scores_valid.max()))"""
         thresholds[pathology_name] = maxf1threhsold
-
         for metric in to_plot_metrics_discrimination:
             metric_array = np.zeros(n_seeds)
             for seed in range(n_seeds):
@@ -191,6 +188,12 @@ discrimination_fig = plotDiscriminationMetrics(means, stds, sorted_pathologies, 
 
 discrimination_fig.savefig(cfg.figures_dir+f'/png/discrimination_{dataset}_{plot_type}.png',format='png',dpi=500)
 discrimination_fig.savefig(cfg.figures_dir+f'/svg/discrimination_{dataset}_{plot_type}.svg',format='svg')
+df = pd.DataFrame(columns=['Pathology','Positive class ratio'] + to_plot_metrics_discrimination + to_plot_metrics_brier)
+df['Pathology'] = sorted_pathologies
+df['Positive class ratio'] = positive_ratios
+for metric in to_plot_metrics_discrimination:
+    df[metric] = ["{:.2e}\pm{:.2e}".format(mean,std) for mean,std in zip(means[metric], stds[metric])]
+
 
 to_plot_metrics_brier = ['brier',
                    'balancedBrier',
@@ -242,3 +245,8 @@ briers_fig = plotBrierMetrics(means, stds, sorted_pathologies, to_plot_metrics=t
 
 briers_fig.savefig(cfg.figures_dir+f'/png/briers_{dataset}_{plot_type}.png',format='png',dpi=500)
 briers_fig.savefig(cfg.figures_dir+f'/svg/briers_{dataset}_{plot_type}.svg',format='svg')
+
+for metric in to_plot_metrics_brier:
+    df[metric] = ["{:.2e}\pm{:.2e}".format(mean,std) for mean,std in zip(means[metric], stds[metric])]
+
+df.to_csv(cfg.figures_dir+'/{dataset}_metrics.csv',ignore_index=True)

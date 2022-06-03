@@ -38,6 +38,7 @@ def plotBrierMetrics(means, stds, sorted_pathologies, to_plot_metrics=None,
     acc_count = 0
     bars_count = 0
     metric_count = 0
+
     for i, metric in enumerate(to_plot_metrics):
         if plot_type == 'combined':
             combined = True
@@ -172,6 +173,7 @@ def plotDiscriminationMetrics(means, stds, sorted_pathologies, to_plot_metrics=N
             points = ax.scatter(horiz, means[metric], label=styles_dict[metric]['label'],
                                 marker=marker_,
                                 color=styles_dict[metric]['color'])
+
             ax.plot(horiz, means[metric], alpha=0.3,
                     ls=ls, lw=lw,
                     color=styles_dict[metric]['color'])
