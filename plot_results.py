@@ -105,7 +105,9 @@ to_plot_metrics_brier = ['brier',
 
 positive_ratios = []
 for pathology_id, pathology_name in enumerate(sorted_pathologies):
-    positive_ratios.append("{:.2e}".format(mean_n_pos[current]))
+    if pathology_name in pathologies[dataset]:
+        current = pathologies['default'].index(pathology_name)
+        positive_ratios.append("{:.2e}".format(mean_n_pos[current]))
 
 #Sort by positive_ratio descending
 df = pd.DataFrame(columns=['Pathology','Positive class ratio'] + to_plot_metrics_discrimination + to_plot_metrics_brier)
