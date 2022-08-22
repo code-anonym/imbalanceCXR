@@ -181,7 +181,7 @@ for _seed in seed_list:
                                                                  dataset_name=dataset_name,
                                                                  cfg=cfg)
 
-        print('AUCROC {} - AUCPR {} - Ajusted AUCPR'.format(test_aucroc,test_aucpr, test_adj_aucpr))
+        print('AUCROC {} - AUCPR {} - Adjusted AUCPR'.format(test_aucroc, test_aucpr, test_adj_aucpr))
         with open(cfg.output_dir + '/test/' + f'{dataset_name}-test-performance-metrics.pkl', 'wb') as f:
             pickle.dump(test_performance_metrics, f)
 

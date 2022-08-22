@@ -85,8 +85,8 @@ print("From valid loaded {} results files".format(counter_results))
 mean_n_pos = [np.mean(
     [priors[seed]['test']['n_pos'][pathology] / priors[seed]['test']['n_total'][pathology] for seed in range(n_seeds)])
               for pathology in range(len(pathologies['default']))]
-mean_n_pos_int = [np.mean([priors[seed]['test']['n_pos'][pathology] for seed in range(n_seeds)]) for pathology in
-                  range(len(pathologies['default']))]
+mean_n_pos_int = [np.mean([priors[seed]['test']['n_pos'][pathology] for seed in range(n_seeds)])
+                  for pathology in range(len(pathologies['default']))]
 
 ## DISCRIMINATION PLOTS
 
@@ -188,16 +188,26 @@ for pathology_id, pathology_name in enumerate(sorted_pathologies):
             means[metric][pathology_id] = np.mean(metric_array)
             stds[metric][pathology_id] = np.std(metric_array)
 
-discrimination_fig = plotDiscriminationMetrics(means, stds, sorted_pathologies, to_plot_metrics=to_plot_metrics_discrimination,
-                               plot_type=plot_type,labels=labels)
-
-discrimination_fig.savefig(cfg.figures_dir+f'/png/discrimination_{dataset}_{plot_type}.png',format='png',dpi=500)
-discrimination_fig.savefig(cfg.figures_dir+f'/svg/discrimination_{dataset}_{plot_type}.svg',format='svg')
+#Sort by positive_ratio descending
 df = pd.DataFrame(columns=['Pathology','Positive class ratio'] + to_plot_metrics_discrimination + to_plot_metrics_brier)
 df['Pathology'] = sorted_pathologies
 df['Positive class ratio'] = positive_ratios
 for metric in to_plot_metrics_discrimination:
-    df[metric] = ["{:.2e}+-{:.2e}".format(mean,std) for mean,std in zip(means[metric], stds[metric])]
+    df[metric] = ["{:.2e}+-{:.2e}".format(mean, std) for mean,std in zip(means[metric], stds[metric])]
+    df[metric+'_mean'] = means[metric]
+    df[metric + '_std'] = stds[metric]
+
+df = df.sort_values(column='Positive class ratio', ascending=False)
+sorted_means = df[[metric+'_mean' for metric in to_plot_metrics_discrimination]].to_dict(orient='list')
+sorted_stds = df[[metric+'_std' for metric in to_plot_metrics_discrimination]].to_dict(orient='list')
+
+discrimination_fig = plotDiscriminationMetrics(sorted_means, sorted_stds, df['Pathology'].values,
+                                               to_plot_metrics=to_plot_metrics_discrimination,
+                               plot_type=plot_type,labels=labels)
+
+discrimination_fig.savefig(cfg.figures_dir+f'/png/discrimination_{dataset}_{plot_type}.png',format='png',dpi=500)
+discrimination_fig.savefig(cfg.figures_dir+f'/svg/discrimination_{dataset}_{plot_type}.svg',format='svg')
+
 
 
 
@@ -208,7 +218,7 @@ for metric in to_plot_metrics_brier:
     means[metric] = np.zeros(len(sorted_pathologies))
     stds[metric] = np.zeros(len(sorted_pathologies))
 labels = []
-for pathology_id, pathology_name in enumerate(sorted_pathologies):
+for pathology_id, pathology_name in enumerate(df.Pathology.values):
     if pathology_name in pathologies[dataset]:
         current = pathologies['default'].index(pathology_name)
 
@@ -242,7 +252,7 @@ for pathology_id, pathology_name in enumerate(sorted_pathologies):
             stds[metric][pathology_id] = np.std(metric_array)
 
 
-briers_fig = plotBrierMetrics(means, stds, sorted_pathologies, to_plot_metrics=to_plot_metrics_brier,
+briers_fig = plotBrierMetrics(means, stds, df.Pathology.values, to_plot_metrics=to_plot_metrics_brier,
                                plot_type=plot_type,labels=labels)
 
 briers_fig.savefig(cfg.figures_dir+f'/png/briers_{dataset}_{plot_type}.png',format='png',dpi=500)
