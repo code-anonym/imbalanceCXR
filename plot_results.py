@@ -197,7 +197,7 @@ for metric in to_plot_metrics_discrimination:
     df[metric+'_mean'] = means[metric]
     df[metric + '_std'] = stds[metric]
 
-df = df.sort_values(column='Positive class ratio', ascending=False)
+df = df.sort_values('Positive class ratio', ascending=False)
 sorted_means = df[[metric+'_mean' for metric in to_plot_metrics_discrimination]].to_dict(orient='list')
 sorted_stds = df[[metric+'_std' for metric in to_plot_metrics_discrimination]].to_dict(orient='list')
 
